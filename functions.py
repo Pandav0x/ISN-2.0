@@ -2,6 +2,8 @@ import string
 from math import *
 from PIL import Image
 
+__all__ = ['getImage', 'getText', 'crypt', 'uncrypt']
+
 #image
 def getImage(imagePath):
     imageFile = Image.open(imagePath)
