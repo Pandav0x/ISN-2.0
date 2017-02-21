@@ -1,7 +1,7 @@
 from PIL import Image
 import math
 
-__all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'infuse', 'extract']
+__all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'genBinaryMask', 'readBitPacket', 'infuseByte', 'infuseFile', 'extractFile']
 
 def getPngImage(path):
     file = Image.open(path)
@@ -29,6 +29,18 @@ def readImageAsBytes(image):
 
     # Parse the data and return it
     return bytearray(byteGenerator(image))
+
+def genBinaryMask(*args, R=False):
+    """meh"""
+    mask = 0
+    for i in range(len(args)):
+        if args[i if not R else -1-i]:
+            mask += 1 << i
+    return mask
+
+def evalBinaryMask(binary):
+    """mehmeh"""
+    return eval("0b" + binary)
 
 def readBitPacket(bytes, n, offset=0):
     pass
