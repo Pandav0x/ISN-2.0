@@ -1,4 +1,5 @@
 from PIL import Image
+import math
 
 __all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'infuse', 'extract']
 
@@ -10,8 +11,8 @@ def getPngImage(path):
     file.close()
     return image
 
-def getImageSize(image):
-    return image.size[0] * image.size[1]
+def getImageSize(image, channels = 3):
+    return image.size[0] * image.size[1] * channels
 
 def getFileSize(file):
     old = file.tell()
@@ -20,14 +21,26 @@ def getFileSize(file):
     file.seek(old, 0) # Go to the
     return size
 
-def infuse(image, file):
+def infuse(image, file, n):
     """file has to be opened as binary read"""
     if 'b' not in file.mode:
         raise ValueError('file shall be opened in binary mode at least')
 
+    # Image,
+    imageSize = getImageSize(image)
     fileSize = getFileSize(file)
+    dataSize = math.ceil(fileSize * 8 / n)
+
+    # Space partition in the image
+    countSize = int.bit_length(imageSize)
+    availableSize = fileSize - countSize
+
+    if dataSize > availableSize:
+        raise Exception('file is too big to be infused (%d/%d with %d)' % (dataSize, availableSize, n))
+
     while file.tell() < fileSize:
         print('pouet')
+        file.read()
 
     """ # OLD
     image = getImage(imagePath)
