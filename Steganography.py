@@ -11,8 +11,8 @@ def getPngImage(path):
     file.close()
     return image
 
-def getImageSize(image, channels = 3):
-    return image.size[0] * image.size[1] * channels
+def getImageSize(image, channels = 4):
+    return image.height * image.width * channels
 
 def getFileSize(file):
     old = file.tell()
@@ -21,22 +21,38 @@ def getFileSize(file):
     file.seek(old, 0) # Go to the
     return size
 
+def readImageAsBytes(image):
+    def byteGenerator(image):
+        for pixel in image.getdata():
+            for value in pixel:
+                yield value
+
+    # Parse the data and return it
+    return bytearray(byteGenerator(image))
+
 def infuse(image, file, n):
     """file has to be opened as binary read"""
     if 'b' not in file.mode:
         raise ValueError('file shall be opened in binary mode at least')
 
-    # Image,
+    # The bytes to use if writing only on the n last bits
+    infusingSize = lambda x: math.ceil(x * 8 / n)
+
+    # Image, file and data size
     imageSize = getImageSize(image)
     fileSize = getFileSize(file)
-    dataSize = math.ceil(fileSize * 8 / n)
+    dataSize = infusingSize(fileSize)
 
     # Space partition in the image
-    countSize = int.bit_length(imageSize)
-    availableSize = fileSize - countSize
+    countFullSize = int.bit_length(imageSize) # bit lenth to write the number
+    countSize = infusingSize(countFullSize) # bytes used to really write
+    availableSize = fileSize - countSize # remaining bytes to write
 
     if dataSize > availableSize:
         raise Exception('file is too big to be infused (%d/%d with %d)' % (dataSize, availableSize, n))
+
+    # Write the numbers of bytes to infuse
+    #image.
 
     while file.tell() < fileSize:
         print('pouet')
