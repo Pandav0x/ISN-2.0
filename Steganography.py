@@ -1,27 +1,26 @@
-import string
-from math import *
 from PIL import Image
 
-__all__ = ['getImage', 'getText', 'crypt', 'uncrypt']
+__all__ = ['getPngImage', 'infuse', 'extract']
 
-#image
-def getImage(imagePath):
-    imageFile = Image.open(imagePath)
-    if(imageFile.format != "PNG"):
-        quit()
-    image = imageFile.convert('RGBA')
-    imageFile.close()
+def getPngImage(path):
+    file = Image.open(path)
+    if file.format != "PNG":
+        raise ValueError('Image shall be formatted as a png')
+    image = file.convert('RGBA')
+    file.close()
     return image
 
-#text
-def getText(textPath):
-    textFile = open(textPath, 'r')
-    text = textFile.read().replace("œ", "oe")
-    textFile.close()
-    return text
+def getFileSize(file):
+    old = file.tell()
+    file.seek(0, 2) # Go at the end
+    size = file.tell()
+    file.seek(old, 0) # Go to the
+    return size
 
+def infuse(image, file):
+    """file has to be opened as binary read"""
 
-def crypt(textPath, imagePath):
+    """ # OLD
     image = getImage(imagePath)
     text = getText(textPath)
     if(text.count("") <= image.size[0]*image.size[1]):
@@ -34,9 +33,9 @@ def crypt(textPath, imagePath):
         image.save("crypted_image.png")
     else:
         print("Text will not fit in pic")
+    """
 
-#WIP
-def uncrypt(imagePath):
+def extract(imagePath):
     image = getImage(imagePath)
     r, g, b, a = image.getpixel((0,0))
     lNumber = (r + (g*(2**8)) + (b*(2**16)) + (a*(2**24))) -1
