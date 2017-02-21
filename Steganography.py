@@ -11,8 +11,8 @@ def getPngImage(path):
     file.close()
     return image
 
-def getImageSize(image, channels = 4):
-    return image.height * image.width * channels
+def getImageSize(image):
+    return image.height * image.width * len(image.getBands())
 
 def getFileSize(file):
     old = file.tell()
@@ -42,8 +42,51 @@ def evalBinaryMask(binary):
     """mehmeh"""
     return eval("0b" + binary)
 
-def readBitPacket(bytes, n, offset=0):
-    pass
+def splitByN(seq, n):
+    """mehmehmeh"""
+    while seq:
+        yield seq[:n]
+        seq = seq[n:]
+
+def getBit(bytes, pos):
+    """Get a bit from an array of bytes, as if it was a bit array"""
+    if pos < len(bytes) * 8:
+        return bytes[pos // 8] & (1 << (pos % 8))
+    else:
+        return None
+
+def putBit(bytes, bit, pos):
+    """Put some bit at some place in some byte array"""
+    if pos < len(bytes) * 8:
+        i, j = pos // 8, pos % 8
+        bytes[i] &= (255 ^ 1 << j)
+        if bit:
+            bytes[i] |= (1 << j)
+        return bytes[i]
+    else:
+        return None
+
+def infuseBitInArray(bytes, bit, pos, n):
+    return putBit(bytes, bit, 8 - n + pos // n * 8 + pos % n)
+
+def readBitPacket(bytes, n, packet=0):
+    """Read packet n°(packet) formed of (n) bits
+    returns (None) if no more packets are available"""
+    if n > 8:
+        raise ValueError("can't split more than 8 bit")
+
+    if (packet * n / 8) > len(bytes):
+        return None # End marker
+
+    value = 0
+    for i in range(n):
+        j = n * packet + i
+
+        # Get the bit and construct the value
+        if getBit(bytes, j):
+            value += (1 << i)
+
+    return value
 
 def infuseByte(byte, packet):
     pass
@@ -62,36 +105,40 @@ def infuseFile(image, file, n):
     dataSize = infusingSize(fileSize, n)
 
     # Space partition in the image
-    countFullSize = int.bit_length(imageSize) # bit lenth to write the number
+    countFullSize = 4 # byte length to write the number
     countSize = infusingSize(countFullSize, n) # bytes used to really write
     availableSize = fileSize - countSize # remaining bytes to write
 
     if dataSize > availableSize:
         raise Exception('file is too big to be infused (%d/%d with %d)' % (dataSize, availableSize, n))
 
+    # Byte arrays
+    OUT = readImageAsBytes(image)
+    IN = file.read()
+
+    # Current bit position for writing into the image data
+    wPosition = 0
+
+    # Byte sequence representing the number of bytes encoded
+    bCount = fileSize.to_bytes(countFullSize, 'big')
+
     # Write the numbers of bytes to infuse
-    pass
+    for i in range(countFullSize * 8):
+        bit = getBit(bCount, wPosition)
+        infuseBitInArray(OUT, bit, wPosition, n)
+        wPosition += 1
 
-    while file.tell() < fileSize:
-        print('pouet')
-        file.read()
-
-    """ # OLD
-    image = getImage(imagePath)
-    text = getText(textPath)
-    if(text.count("") <= image.size[0]*image.size[1]):
-        print("Text will fit in pic")
-        image.putpixel((0,0), (text.count("")&255,text.count("")>>8&255,text.count("")>>16&255,text.count("")>>24&255))
-        for i in range(1, text.count("")-1): #\0 at end
-            r, g, b, a = image.getpixel((i%(image.size[0]), floor(i/(image.size[0]))))
-            tTemp = ord(text[i])
-            image.putpixel((i%(image.size[0]), floor(i/(image.size[0]))),(r-(r%4)+(tTemp&192)%63, g-(g%4) + (tTemp&48)%15, b-(b%4) + (tTemp&12)%3, a-(a%4) + tTemp%3))
-        image.save("crypted_image.png")
-    else:
-        print("Text will not fit in pic")
-    """
+    bit = True # Bit to copy
+    rPosition = 0 # Position relative to reading
+    while bit is not None:
+        bit = getBit(IN, rPosition)
+        if bit is None: break
+        infuseBitInArray(OUT, bit, wPosition, n)
 
 def extractFile(imagePath):
+    pass
+    
+    """ # OLD
     image = getImage(imagePath)
     r, g, b, a = image.getpixel((0,0))
     lNumber = (r + (g*(2**8)) + (b*(2**16)) + (a*(2**24))) -1
@@ -103,3 +150,4 @@ def extractFile(imagePath):
         txt += chr(tmp)
 
     print(txt)
+    """
