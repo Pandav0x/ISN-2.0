@@ -30,29 +30,35 @@ def readImageAsBytes(image):
     # Parse the data and return it
     return bytearray(byteGenerator(image))
 
-def infuse(image, file, n):
+def readBitPacket(bytes, n, offset=0):
+    pass
+
+def infuseByte(byte, packet):
+    pass
+
+def infuseFile(image, file, n):
     """file has to be opened as binary read"""
     if 'b' not in file.mode:
         raise ValueError('file shall be opened in binary mode at least')
 
     # The bytes to use if writing only on the n last bits
-    infusingSize = lambda x: math.ceil(x * 8 / n)
+    infusingSize = lambda x, n: math.ceil(x * 8 / n)
 
     # Image, file and data size
     imageSize = getImageSize(image)
     fileSize = getFileSize(file)
-    dataSize = infusingSize(fileSize)
+    dataSize = infusingSize(fileSize, n)
 
     # Space partition in the image
     countFullSize = int.bit_length(imageSize) # bit lenth to write the number
-    countSize = infusingSize(countFullSize) # bytes used to really write
+    countSize = infusingSize(countFullSize, n) # bytes used to really write
     availableSize = fileSize - countSize # remaining bytes to write
 
     if dataSize > availableSize:
         raise Exception('file is too big to be infused (%d/%d with %d)' % (dataSize, availableSize, n))
 
     # Write the numbers of bytes to infuse
-    #image.
+    pass
 
     while file.tell() < fileSize:
         print('pouet')
@@ -73,7 +79,7 @@ def infuse(image, file, n):
         print("Text will not fit in pic")
     """
 
-def extract(imagePath):
+def extractFile(imagePath):
     image = getImage(imagePath)
     r, g, b, a = image.getpixel((0,0))
     lNumber = (r + (g*(2**8)) + (b*(2**16)) + (a*(2**24))) -1
