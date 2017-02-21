@@ -1,6 +1,6 @@
 from PIL import Image
 
-__all__ = ['getPngImage', 'infuse', 'extract']
+__all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'infuse', 'extract']
 
 def getPngImage(path):
     file = Image.open(path)
@@ -9,6 +9,9 @@ def getPngImage(path):
     image = file.convert('RGBA')
     file.close()
     return image
+
+def getImageSize(image):
+    return image.size[0] * image.size[1]
 
 def getFileSize(file):
     old = file.tell()
@@ -19,6 +22,12 @@ def getFileSize(file):
 
 def infuse(image, file):
     """file has to be opened as binary read"""
+    if 'b' not in file.mode:
+        raise ValueError('file shall be opened in binary mode at least')
+
+    fileSize = getFileSize(file)
+    while file.tell() < fileSize:
+        print('pouet')
 
     """ # OLD
     image = getImage(imagePath)
