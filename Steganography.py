@@ -8,7 +8,7 @@ On va partir du principe que les images sont en RGBA, et on fera tout en RGBA, p
 __all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'genBinaryMask', 'readBitPacket', 'infuseByte', 'infuseFile', 'extractFile']
 
 HEADER_SIZE = 4
-INFUSING_SIZE = 3
+INFUSING_SIZE = 2
 
 class InfusionException(Exception): pass
 
@@ -37,10 +37,10 @@ def putBit(bytes, pos, val):
     bytes[pos // 8] ^= (-val ^ bytes[pos // 8]) & (1 << pos % 8)
 
 def putInfusedBit(bytes, pos, val):
-    putBit(bytes, 8 * (pos // INFUSING_SIZE) + (8 - INFUSING_SIZE + pos % INFUSING_SIZE), val)
+    putBit(bytes, 8 * (pos // INFUSING_SIZE) - (8 - INFUSING_SIZE + pos % INFUSING_SIZE), val)
 
 def getInfusedBit(bytes, pos):
-    return getBit(bytes, 8 * (pos // INFUSING_SIZE) + (8 - INFUSING_SIZE + pos % INFUSING_SIZE))
+    return getBit(bytes, 8 * (pos // INFUSING_SIZE) - (8 - INFUSING_SIZE + pos % INFUSING_SIZE))
 
 def infuseFile(fileIn, imageIn, imageOut):
     file = open(fileIn, 'br')
@@ -55,7 +55,7 @@ def infuseFile(fileIn, imageIn, imageOut):
     if requiredBytes > imageSize:
         raise InfusionException('Data too big')
 
-    HEADER = int.to_bytes(fileSize * INFUSING_SIZE, HEADER_SIZE, 'big')
+    HEADER = int.to_bytes(fileSize, HEADER_SIZE, 'big')
     BODY = file.read()
     file.close()
 
