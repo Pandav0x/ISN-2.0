@@ -5,7 +5,7 @@ import math
 On va partir du principe que les images sont en RGBA, et on fera tout en RGBA, pour le moment.
 """
 
-__all__ = ['getPngImage', 'getImageSize', 'getFileSize', 'genBinaryMask', 'readBitPacket', 'infuseByte', 'infuseFile', 'extractFile']
+__all__ = ['HEADER_SIZE', 'INFUSING_SIZE', 'getPngImage', 'getImageSize', 'getFileSize', 'putBit', 'getBit', 'putInfusedBit', 'getInfusedBit', 'infuseFile', 'extractFile']
 
 HEADER_SIZE = 4
 INFUSING_SIZE = 2
